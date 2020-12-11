@@ -15,6 +15,26 @@ macro redef(struct_def)
     end)
 end
 
+@doc """
+    @redef [mutable] struct S [<: A]
+        ...
+    end
+
+Define a structure in a manner that allows redefinitions.
+
+# Examples
+
+```
+@redef struct S
+    s::String
+end
+
+@redef mutable struct S
+    n::Int
+end
+```
+""" :(@RedefStructs.redef)
+
 macro redef_print(struct_def)
     name = struct_def_name(struct_def)
     real_name = gensym(name)
