@@ -3,7 +3,7 @@ all: makedocs
 
 
 .PHONY: makedocs
-makedocs:
+makedocs: setup-project
 	julia --project make.jl
 
 
@@ -14,5 +14,14 @@ DocMeta.setdocmeta!(RedefStructs, :DocTestSetup, :(using RedefStructs); recursiv
 doctest(RedefStructs)
 
 .PHONY: doctest
-doctest:
+doctest: setup-project
 	julia --project -e '$(DOCTEST_CMD)'
+
+SETUP_PROJECT_CMD = \
+using Pkg ;\
+Pkg.develop(PackageSpec(path="..")) ;\
+Pkg.instantiate()
+
+.PHONY: setup-project
+setup-project:
+	julia --project -e '$(SETUP_PROJECT_CMD)'
