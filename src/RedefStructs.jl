@@ -9,16 +9,30 @@ export @redef, @redef_print
 
 Define a structure in a manner that allows redefinitions.
 
+Behind the scenes, this creates a "secret" structure with
+[`gensym`](https://docs.julialang.org/en/v1/base/base/#Base.gensym)
+and assigns `S` to its name.
+
+See also [`@redef_print`](@ref).
+
 # Examples
 
-```
-@redef struct S
-    s::String
-end
+```jldoctest
+julia> using RedefStructs
 
-@redef mutable struct S
-    n::Int
-end
+julia> @redef struct S
+           s::String
+       end
+
+julia> S("Hello").s
+"Hello"
+
+julia> @redef mutable struct S
+           n::Int
+       end
+
+julia> S(42).n
+42
 ```
 """
 macro redef(struct_def)
@@ -34,6 +48,39 @@ macro redef(struct_def)
     end)
 end
 
+@doc """
+    @redef [mutable] struct S [<: A]
+        ...
+    end
+
+Define a structure in a manner that allows redefinitions.
+
+Behind the scenes, this creates a "secret" structure with
+[`gensym`](https://docs.julialang.org/en/v1/base/base/#Base.gensym)
+and defines a specialized method of `Base.show_datatype` which shows `S`.
+
+See also [`@redef`](@ref).
+
+# Examples
+
+```jldoctest
+julia> using RedefStructs
+
+julia> @redef_print struct S
+           s::String
+       end
+
+julia> S("Hello").s
+"Hello"
+
+julia> @redef_print mutable struct S
+           n::Int
+       end
+
+julia> S(42).n
+42
+```
+"""
 macro redef_print(struct_def)
     name = struct_def_name(struct_def)
     real_name = gensym(name)
