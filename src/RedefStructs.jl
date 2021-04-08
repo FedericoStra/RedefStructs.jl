@@ -2,19 +2,6 @@ module RedefStructs
 
 export @redef, @redef_print
 
-macro redef(struct_def)
-    name = struct_def_name(struct_def)
-    real_name = gensym(name)
-    struct_def = replace!(struct_def, name, real_name)
-    fix_name = :(Base.unwrap_unionall($real_name).name.name = $(QuoteNode(name)))
-    esc(quote
-        $struct_def
-        $fix_name
-        $name = $real_name # this should be `const $name = $real_name`
-        nothing # avoid returning the new struct
-    end)
-end
-
 @doc """
     @redef [mutable] struct S [<: A]
         ...
@@ -33,7 +20,19 @@ end
     n::Int
 end
 ```
-""" :(@RedefStructs.redef)
+"""
+macro redef(struct_def)
+    name = struct_def_name(struct_def)
+    real_name = gensym(name)
+    struct_def = replace!(struct_def, name, real_name)
+    fix_name = :(Base.unwrap_unionall($real_name).name.name = $(QuoteNode(name)))
+    esc(quote
+        $struct_def
+        $fix_name
+        $name = $real_name # this should be `const $name = $real_name`
+        nothing # avoid returning the new struct
+    end)
+end
 
 macro redef_print(struct_def)
     name = struct_def_name(struct_def)
