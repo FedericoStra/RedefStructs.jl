@@ -1,3 +1,5 @@
+PACKAGE := RedefStructs
+
 .PHONY: all
 all: makedocs
 
@@ -8,18 +10,19 @@ makedocs: setup-project
 
 
 DOCTEST_CMD = \
-using Documenter: DocMeta, doctest ;\
-using RedefStructs ;\
-DocMeta.setdocmeta!(RedefStructs, :DocTestSetup, :(using RedefStructs); recursive=true) ;\
-doctest(RedefStructs)
+using Documenter: DocMeta, doctest; \
+using $(PACKAGE); \
+DocMeta.setdocmeta!($(PACKAGE), :DocTestSetup, :(using $(PACKAGE)); recursive=true); \
+doctest($(PACKAGE))
 
 .PHONY: doctest
 doctest: setup-project
 	julia --project -e '$(DOCTEST_CMD)'
 
+
 SETUP_PROJECT_CMD = \
 using Pkg ;\
-Pkg.develop(PackageSpec(path="..")) ;\
+Pkg.develop(path="..") ;\
 Pkg.instantiate()
 
 .PHONY: setup-project
