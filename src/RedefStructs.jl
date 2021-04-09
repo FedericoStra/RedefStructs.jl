@@ -1,6 +1,6 @@
 module RedefStructs
 
-export @redef, @redef_print
+export @redef, @redef_print, @kwredef
 
 @doc """
     @redef [mutable] struct S [<: A]
@@ -89,6 +89,53 @@ macro redef_print(struct_def)
     esc(quote
         $struct_def
         $fix_print
+        $name = $real_name # this should be `const $name = $real_name`
+        nothing # avoid returning the new struct
+    end)
+end
+
+@doc """
+    @kwredef [mutable] struct S [<: A]
+        ...
+    end
+
+Define a structure in a manner that allows redefinitions, using `Base.@kwdef`.
+
+Behind the scenes, this creates a "secret" structure with
+[`gensym`](https://docs.julialang.org/en/v1/base/base/#Base.gensym)
+and assigns `S` to its name.
+
+See also [`@redef`](@ref) and `Base.@kwdef`.
+
+# Examples
+
+```jldoctest
+julia> using RedefStructs
+
+julia> @kwredef struct S
+           s::String = "<empty>"
+       end
+
+julia> S("Hello").s
+"Hello"
+
+julia> @kwredef mutable struct S
+           a::Int = 0
+           b::Int
+       end
+
+julia> S(b=42).a
+0
+```
+"""
+macro kwredef(struct_def)
+    name = struct_def_name(struct_def)
+    real_name = gensym(name)
+    struct_def = :(Base.@kwdef $(replace!(struct_def, name, real_name)))
+    fix_name = :(Base.unwrap_unionall($real_name).name.name = $(QuoteNode(name)))
+    esc(quote
+        $struct_def
+        $fix_name
         $name = $real_name # this should be `const $name = $real_name`
         nothing # avoid returning the new struct
     end)
